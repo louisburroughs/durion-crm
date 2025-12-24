@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+    <entity entity-name="DurContactMech" package-name="durion.crm" table-name="DUR_CONTACT_MECH">
+        <description>Contact mechanisms for customers - email, phone, address, etc.</description>
+        <field name="contactMechId" type="id" is-pk="true"/>
+        <field name="customerId" type="id" is-pk="false"/>
+        <field name="contactMechType" type="text-short">
+            <description>EMAIL_ADDRESS, TELECOM_NUMBER, POSTAL_ADDRESS</description>
+        </field>
+        <field name="infoString" type="text-medium">
+            <description>Email address, phone number, or formatted address</description>
+        </field>
+        <field name="isPrimary" type="text-indicator" default="N"/>
+        <field name="isPreferred" type="text-indicator" default="N"/>
+        <field name="purposeEnumId" type="text-short">
+            <description>SHIP, BILL, HOME, WORK, etc.</description>
+        </field>
+        <field name="status" type="text-short" default="CONTACT_VALID"/>
+        <field name="verified" type="text-indicator" default="N"/>
+        <field name="verifiedDate" type="date-time"/>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="updatedDate" type="date-time" update="ec.user.nowTimestamp"/>
+        <relationship type="one" related-entity-name="DurCustomer" short-alias="customer">
+            <key-map field-name="customerId" related-field-name="customerId"/>
+        </relationship>
+    </entity>
+
+</entities>

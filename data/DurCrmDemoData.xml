@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="demo">
+    <!-- Sample Customers -->
+    <durion.crm.DurCustomer customerId="CUST-001" customerName="Acme Auto Services" 
+                            customerType="BUSINESS" statusId="CUSTOMER_ACTIVE"
+                            businessType="RETAIL" industryType="AUTO_SERVICE"/>
+    <durion.crm.DurCustomer customerId="CUST-002" customerName="Quick Fleet Logistics"
+                            customerType="FLEET" statusId="CUSTOMER_ACTIVE"
+                            businessType="WHOLESALE"/>
+    <durion.crm.DurCustomer customerId="CUST-003" customerName="John Smith"
+                            customerType="INDIVIDUAL" statusId="CUSTOMER_ACTIVE"/>
+    <durion.crm.DurCustomer customerId="CUST-004" customerName="Premier Vehicle Rental"
+                            customerType="BUSINESS" statusId="CUSTOMER_ACTIVE"
+                            businessType="RETAIL" industryType="RENTAL"/>
+    
+    <!-- Sample Fleets -->
+    <durion.crm.DurFleet fleetId="FLEET-001" customerId="CUST-002" fleetName="Quick Fleet - Main"
+                         fleetType="COMMERCIAL" fleetSize="25" operatingRegion="Northeast"
+                         maintenanceSchedule="MONTHLY" statusId="FLEET_ACTIVE"/>
+    <durion.crm.DurFleet fleetId="FLEET-002" customerId="CUST-004" fleetName="Premier Rentals - Fleet 1"
+                         fleetType="RENTAL" fleetSize="50" operatingRegion="Southeast"
+                         maintenanceSchedule="QUARTERLY" statusId="FLEET_ACTIVE"/>
+    
+    <!-- Sample Vehicles -->
+    <durion.crm.DurVehicle vehicleId="VEH-001" customerId="CUST-003" vin="1HGBH41JXMN109186"
+                           year="2020" make="Honda" model="Civic" bodyType="SEDAN"
+                           color="Silver" licensePlate="ABC-1234" mileage="35000"
+                           statusId="VEHICLE_ACTIVE"/>
+    <durion.crm.DurVehicle vehicleId="VEH-002" customerId="CUST-001" vin="5TDJKRFH6LS123456"
+                           year="2021" make="Toyota" model="Highlander" bodyType="SUV"
+                           color="Blue" licensePlate="DEF-5678" mileage="22000"
+                           statusId="VEHICLE_ACTIVE"/>
+    <durion.crm.DurVehicle vehicleId="VEH-003" fleetId="FLEET-001" vin="1FTFW1ET5DFC10001"
+                           year="2019" make="Ford" model="F-150" bodyType="TRUCK"
+                           color="White" licensePlate="QFL-001" mileage="78000"
+                           statusId="VEHICLE_ACTIVE"/>
+    <durion.crm.DurVehicle vehicleId="VEH-004" fleetId="FLEET-001" vin="2G1FB1E39D1285675"
+                           year="2018" make="Chevrolet" model="Impala" bodyType="SEDAN"
+                           color="Black" licensePlate="QFL-002" mileage="92000"
+                           statusId="VEHICLE_ACTIVE"/>
+    <durion.crm.DurVehicle vehicleId="VEH-005" fleetId="FLEET-002" vin="1FTFE4C83DFA12345"
+                           year="2020" make="Ford" model="Transit" bodyType="VAN"
+                           color="White" licensePlate="PRE-001" mileage="45000"
+                           statusId="VEHICLE_ACTIVE"/>
+    
+    <!-- Contact Mechanisms -->
+    <durion.crm.DurContactMech contactMechId="CONT-001" customerId="CUST-001" 
+                                contactMechType="TELECOM_NUMBER" infoString="(555) 123-4567"
+                                purposeEnumId="WORK" isPrimary="Y" verified="Y"/>
+    <durion.crm.DurContactMech contactMechId="CONT-002" customerId="CUST-001"
+                                contactMechType="EMAIL_ADDRESS" infoString="info@acmeauto.com"
+                                purposeEnumId="WORK" isPrimary="Y" verified="Y"/>
+    <durion.crm.DurContactMech contactMechId="CONT-003" customerId="CUST-002"
+                                contactMechType="TELECOM_NUMBER" infoString="(555) 987-6543"
+                                purposeEnumId="WORK" isPrimary="Y" verified="Y"/>
+    <durion.crm.DurContactMech contactMechId="CONT-004" customerId="CUST-002"
+                                contactMechType="EMAIL_ADDRESS" infoString="fleet@quicklogistics.com"
+                                purposeEnumId="WORK" isPrimary="Y" verified="Y"/>
+    <durion.crm.DurContactMech contactMechId="CONT-005" customerId="CUST-003"
+                                contactMechType="TELECOM_NUMBER" infoString="(555) 456-7890"
+                                purposeEnumId="HOME" isPrimary="Y" verified="N"/>
+    <durion.crm.DurContactMech contactMechId="CONT-006" customerId="CUST-003"
+                                contactMechType="EMAIL_ADDRESS" infoString="john.smith@email.com"
+                                purposeEnumId="HOME" isPrimary="Y" verified="Y"/>
+</entity-facade-xml>

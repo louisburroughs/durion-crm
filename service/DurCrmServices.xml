@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <!-- Customer Services -->
+    <service verb="create" noun="Customer" type="inline">
+        <in-parameters>
+            <parameter name="customerName" required="true"/>
+            <parameter name="customerType" required="true"/>
+            <parameter name="businessType"/>
+            <parameter name="industryType"/>
+            <parameter name="taxId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="customerId"/>
+        </out-parameters>
+        <actions>
+            <set field="statusId" value="CUSTOMER_ACTIVE"/>
+            <set field="createdDate" from="ec.user.nowTimestamp"/>
+            <service-call name="create#durion.crm.DurCustomer" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="update" noun="Customer" type="inline">
+        <in-parameters>
+            <parameter name="customerId" required="true"/>
+            <parameter name="customerName"/>
+            <parameter name="businessType"/>
+            <parameter name="industryType"/>
+            <parameter name="notes"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="durion.crm.DurCustomer" value-field="customer"/>
+            <set field="customer.updatedDate" from="ec.user.nowTimestamp"/>
+            <entity-update value-field="customer"/>
+            <service-call name="update#durion.crm.DurCustomer" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="find" noun="Customer" type="inline">
+        <in-parameters>
+            <parameter name="customerId"/>
+            <parameter name="customerName"/>
+            <parameter name="customerType"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="customerList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="durion.crm.DurCustomer" list="customerList">
+                <econdition field-name="customerId" from="customerId" ignore-if-empty="true"/>
+                <econdition field-name="customerName" operator="like-ic" value="%${customerName}%" ignore-if-empty="true"/>
+                <econdition field-name="customerType" from="customerType" ignore-if-empty="true"/>
+            </entity-find>
+        </actions>
+    </service>
+
+    <!-- Vehicle Services -->
+    <service verb="create" noun="Vehicle" type="inline">
+        <in-parameters>
+            <parameter name="customerId"/>
+            <parameter name="fleetId"/>
+            <parameter name="vin" required="true"/>
+            <parameter name="year" required="true"/>
+            <parameter name="make" required="true"/>
+            <parameter name="model" required="true"/>
+            <parameter name="bodyType"/>
+            <parameter name="color"/>
+            <parameter name="licensePlate"/>
+            <parameter name="mileage" default="0"/>
+            <parameter name="registrationDate"/>
+            <parameter name="nextServiceDate"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="vehicleId"/>
+        </out-parameters>
+        <actions>
+            <set field="statusId" value="VEHICLE_ACTIVE"/>
+            <set field="createdDate" from="ec.user.nowTimestamp"/>
+            <service-call name="create#durion.crm.DurVehicle" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="update" noun="Vehicle" type="script"
+             location="component://durion-crm/script/groovy/DurCrmServices.groovy#updateVehicle">
+        <in-parameters>
+            <parameter name="vehicleId" required="true"/>
+            <parameter name="mileage" type="BigDecimal"/>
+            <parameter name="nextServiceDate" type="Date"/>
+            <parameter name="notes"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="success" type="Boolean"/>
+        </out-parameters>
+    </service>
+
+    <service verb="find" noun="Vehicle" type="inline">
+        <in-parameters>
+            <parameter name="customerId"/>
+            <parameter name="fleetId"/>
+            <parameter name="make"/>
+            <parameter name="model"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="vehicleList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="durion.crm.DurVehicle" list="vehicleList">
+                <econdition field-name="customerId" from="customerId" ignore-if-empty="true"/>
+                <econdition field-name="fleetId" from="fleetId" ignore-if-empty="true"/>
+                <econdition field-name="make" operator="like-ic" value="%${make}%" ignore-if-empty="true"/>
+                <econdition field-name="model" operator="like-ic" value="%${model}%" ignore-if-empty="true"/>
+            </entity-find>
+        </actions>
+    </service>
+
+    <!-- Fleet Services -->
+    <service verb="create" noun="Fleet" type="inline">
+        <in-parameters>
+            <parameter name="customerId" required="true"/>
+            <parameter name="fleetName" required="true"/>
+            <parameter name="fleetType" required="true"/>
+            <parameter name="fleetSize" default="0"/>
+            <parameter name="operatingRegion"/>
+            <parameter name="maintenanceSchedule"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="fleetId"/>
+        </out-parameters>
+        <actions>
+            <set field="statusId" value="FLEET_ACTIVE"/>
+            <set field="createdDate" from="ec.user.nowTimestamp"/>
+            <service-call name="create#durion.crm.DurFleet" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <!-- Contact Mechanisms -->
+    <service verb="add" noun="ContactMechanism" type="inline">
+        <in-parameters>
+            <parameter name="customerId" required="true"/>
+            <parameter name="contactMechType" required="true"/>
+            <parameter name="infoString" required="true"/>
+            <parameter name="purposeEnumId"/>
+            <parameter name="isPrimary" default="N"/>
+            <parameter name="isPreferred" default="N"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="contactMechId"/>
+        </out-parameters>
+        <actions>
+            <set field="status" value="CONTACT_VALID"/>
+            <set field="verified" value="N"/>
+            <set field="createdDate" from="ec.user.nowTimestamp"/>
+            <service-call name="create#durion.crm.DurContactMech" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="update" noun="ContactMechanism" type="inline">
+        <in-parameters>
+            <parameter name="contactMechId" required="true"/>
+            <parameter name="infoString"/>
+            <parameter name="isPrimary"/>
+            <parameter name="isPreferred"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#durion.crm.DurContactMech" in-map="context" out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="verify" noun="ContactMechanism" type="inline">
+        <in-parameters>
+            <parameter name="contactMechId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="durion.crm.DurContactMech" value-field="contactMech"/>
+            <set field="contactMech.verified" value="Y"/>
+            <set field="contactMech.verifiedDate" from="ec.user.nowTimestamp"/>
+            <entity-update value-field="contactMech"/>
+        </actions>
+    </service>
+
+    <service verb="get" noun="CustomerSummary" type="script"
+             location="component://durion-crm/script/groovy/DurCrmServices.groovy#getCustomerSummary">
+        <in-parameters>
+            <parameter name="customerId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="customer"/>
+            <parameter name="vehicles" type="List"/>
+            <parameter name="fleets" type="List"/>
+            <parameter name="contacts" type="List"/>
+            <parameter name="totalVehicles" type="Integer"/>
+            <parameter name="totalFleets" type="Integer"/>
+        </out-parameters>
+    </service>
+
+</services>

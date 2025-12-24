@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+    <entity entity-name="DurFleet" package-name="durion.crm" table-name="DUR_FLEET">
+        <description>Fleet master data for fleet customers</description>
+        <field name="fleetId" type="id" is-pk="true"/>
+        <field name="customerId" type="id" is-pk="false">
+            <description>Fleet owner/operator customer</description>
+        </field>
+        <field name="fleetName" type="text-medium" is-pk="false"/>
+        <field name="fleetType" type="text-short">
+            <description>COMMERCIAL, GOVERNMENT, RENTAL, PERSONAL</description>
+        </field>
+        <field name="fleetSize" type="number-integer" default="0">
+            <description>Number of vehicles in fleet</description>
+        </field>
+        <field name="operatingRegion" type="text-medium">
+            <description>Geographic region of operations</description>
+        </field>
+        <field name="maintenanceSchedule" type="text-short">
+            <description>MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL</description>
+        </field>
+        <field name="statusId" type="text-short" default="FLEET_ACTIVE"/>
+        <field name="notes" type="text-long"/>
+        <field name="createdDate" type="date-time" default="ec.user.nowTimestamp"/>
+        <field name="updatedDate" type="date-time" update="ec.user.nowTimestamp"/>
+        <relationship type="one" related-entity-name="DurCustomer" short-alias="customer">
+            <key-map field-name="customerId" related-field-name="customerId"/>
+        </relationship>
+    </entity>
+
+</entities>

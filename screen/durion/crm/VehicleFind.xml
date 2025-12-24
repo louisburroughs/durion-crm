@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Find Vehicles" default-menu-index="3">
+
+    <transition name="vehicleDetail">
+        <default-response url="VehicleEdit"/>
+    </transition>
+
+    <transition name="createVehicle">
+        <service-call name="durion.crm.DurCrmServices.create#Vehicle"/>
+        <default-response url="VehicleEdit"/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="durion.crm.DurVehicle" list="vehicleList">
+            <search-form-inputs default-order-by="-createdDate"/>
+        </entity-find>
+    </actions>
+
+    <widgets>
+        <container-dialog id="CreateVehicleDialog" button-text="Create Vehicle">
+            <form-single name="CreateVehicle" transition="createVehicle">
+                <field name="customerId"><default-field title="Customer"><text-line size="20"/></default-field></field>
+                <field name="fleetId"><default-field title="Fleet"><text-line size="20"/></default-field></field>
+                <field name="vin"><default-field title="VIN" required="true"><text-line size="20"/></default-field></field>
+                <field name="year"><default-field title="Year" required="true"><text-line size="4"/></default-field></field>
+                <field name="make"><default-field title="Make" required="true"><text-line size="20"/></default-field></field>
+                <field name="model"><default-field title="Model" required="true"><text-line size="20"/></default-field></field>
+                <field name="bodyType">
+                    <default-field title="Body Type">
+                        <drop-down allow-empty="true">
+                            <option key="SEDAN" text="Sedan"/>
+                            <option key="SUV" text="SUV"/>
+                            <option key="TRUCK" text="Truck"/>
+                            <option key="VAN" text="Van"/>
+                            <option key="COUPE" text="Coupe"/>
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="color"><default-field><text-line size="20"/></default-field></field>
+                <field name="licensePlate"><default-field><text-line size="15"/></default-field></field>
+                <field name="mileage"><default-field default-value="0"><text-line size="10"/></default-field></field>
+                <field name="registrationDate"><default-field><date-time/></default-field></field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="VehicleList" list="vehicleList" skip-form="true">
+            <field name="vehicleId">
+                <default-field>
+                    <link url="vehicleDetail" text="${vehicleId}" parameter-map="[vehicleId: vehicleId]"/>
+                </default-field>
+            </field>
+            <field name="customerId"><default-field title="Customer"><display/></default-field></field>
+            <field name="fleetId"><default-field title="Fleet"><display/></default-field></field>
+            <field name="year"><default-field><display/></default-field></field>
+            <field name="make"><default-field><display/></default-field></field>
+            <field name="model"><default-field><display/></default-field></field>
+            <field name="vin"><default-field title="VIN"><display/></default-field></field>
+            <field name="licensePlate"><default-field><display/></default-field></field>
+            <field name="mileage"><default-field><display format="#,##0"/></default-field></field>
+            <field name="statusId"><default-field title="Status"><display/></default-field></field>
+        </form-list>
+    </widgets>
+</screen>

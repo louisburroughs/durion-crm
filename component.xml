@@ -2,6 +2,11 @@
 <component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd"
            name="durion-crm" version="1.0.0">
-    <description>Durion Crm - Customer Relationship Management</description>
+    <description>Durion CRM - Customer Relationship Management System</description>
     <depends-on name="durion-common"/>
+
+    <entity-facade>
+        <load-entity value="demo" location="data/DurCrmDemoData.xml"/>
+    </entity-facade>
+
 </component>

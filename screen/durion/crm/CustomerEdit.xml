@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Customer Detail" default-menu-index="2">
+
+    <parameter name="customerId"/>
+
+    <transition name="updateCustomer">
+        <service-call name="durion.crm.DurCrmServices.update#Customer"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="addContact">
+        <service-call name="durion.crm.DurCrmServices.add#ContactMechanism"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="verifyContact">
+        <service-call name="durion.crm.DurCrmServices.verify#ContactMechanism"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="vehicleDetail">
+        <default-response url="../VehicleEdit"/>
+    </transition>
+
+    <transition name="createVehicle">
+        <service-call name="durion.crm.DurCrmServices.create#Vehicle"/>
+        <default-response url="../VehicleEdit"/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="durion.crm.DurCustomer" value-field="customer"/>
+        <service-call name="durion.crm.DurCrmServices.get#CustomerSummary" 
+                      in-map="[customerId: customerId]" out-map="summaryData"/>
+    </actions>
+
+    <widgets>
+        <container-box>
+            <box-header title="Customer: ${customer?.customerName ?: 'Unknown'}"/>
+            <box-body>
+                <form-single name="UpdateCustomer" transition="updateCustomer">
+                    <field name="customerId"><default-field><hidden default-value="${customerId}"/></default-field></field>
+                    <field name="customerName"><default-field title="Name"><text-line size="40" default-value="${customer?.customerName}"/></default-field></field>
+                    <field name="businessType">
+                        <default-field title="Business Type">
+                            <drop-down allow-empty="true">
+                                <option key="RETAIL" text="Retail"/>
+                                <option key="WHOLESALE" text="Wholesale"/>
+                                <option key="WHOLESALE_RETAIL" text="Wholesale/Retail"/>
+                            </drop-down>
+                        </default-field>
+                    </field>
+                    <field name="industryType"><default-field title="Industry"><text-line size="30" default-value="${customer?.industryType}"/></default-field></field>
+                    <field name="notes"><default-field><textarea cols="60" rows="4"/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-single>
+            </box-body>
+        </container-box>
+
+        <container-box>
+            <box-header title="Contact Information"/>
+            <box-body>
+                <container-dialog id="AddContactDialog" button-text="Add Contact">
+                    <form-single name="AddContact" transition="addContact">
+                        <field name="customerId"><default-field><hidden default-value="${customerId}"/></default-field></field>
+                        <field name="contactMechType">
+                            <default-field title="Type" required="true">
+                                <drop-down>
+                                    <option key="EMAIL_ADDRESS" text="Email"/>
+                                    <option key="TELECOM_NUMBER" text="Phone"/>
+                                    <option key="POSTAL_ADDRESS" text="Address"/>
+                                </drop-down>
+                            </default-field>
+                        </field>
+                        <field name="infoString"><default-field title="Info" required="true"><text-line size="50"/></default-field></field>
+                        <field name="purposeEnumId">
+                            <default-field title="Purpose">
+                                <drop-down allow-empty="true">
+                                    <option key="SHIP" text="Shipping"/>
+                                    <option key="BILL" text="Billing"/>
+                                    <option key="HOME" text="Home"/>
+                                    <option key="WORK" text="Work"/>
+                                </drop-down>
+                            </default-field>
+                        </field>
+                        <field name="isPrimary">
+                            <default-field title="Primary">
+                                <drop-down>
+                                    <option key="Y" text="Yes"/>
+                                    <option key="N" text="No"/>
+                                </drop-down>
+                            </default-field>
+                        </field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+                <form-list name="ContactList" list="summaryData?.contacts ?: []">
+                    <field name="contactMechId"><default-field><display/></default-field></field>
+                    <field name="contactMechType"><default-field title="Type"><display/></default-field></field>
+                    <field name="infoString"><default-field><display/></default-field></field>
+                    <field name="purposeEnumId"><default-field title="Purpose"><display/></default-field></field>
+                    <field name="verified"><default-field><display/></default-field></field>
+                    <field name="verifyButton">
+                        <default-field title="">
+                            <link url="verifyContact" text="Verify" parameter-map="[contactMechId: contactMechId]" 
+                                  condition="verified == 'N'"/>
+                        </default-field>
+                    </field>
+                </form-list>
+            </box-body>
+        </container-box>
+
+        <container-box>
+            <box-header title="Vehicles (${summaryData?.totalVehicles ?: 0})"/>
+            <box-body>
+                <container-dialog id="CreateVehicleDialog" button-text="Add Vehicle">
+                    <form-single name="CreateVehicle" transition="createVehicle">
+                        <field name="customerId"><default-field><hidden default-value="${customerId}"/></default-field></field>
+                        <field name="vin"><default-field title="VIN" required="true"><text-line size="20"/></default-field></field>
+                        <field name="year"><default-field title="Year" required="true"><text-line size="4"/></default-field></field>
+                        <field name="make"><default-field title="Make" required="true"><text-line size="20"/></default-field></field>
+                        <field name="model"><default-field title="Model" required="true"><text-line size="20"/></default-field></field>
+                        <field name="bodyType"><default-field title="Body Type"><text-line size="20"/></default-field></field>
+                        <field name="licensePlate"><default-field title="License Plate"><text-line size="15"/></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+                <form-list name="VehicleList" list="summaryData?.vehicles ?: []" skip-form="true">
+                    <field name="vehicleId">
+                        <default-field>
+                            <link url="vehicleDetail" text="${vehicleId}" parameter-map="[vehicleId: vehicleId]"/>
+                        </default-field>
+                    </field>
+                    <field name="year"><default-field><display/></default-field></field>
+                    <field name="make"><default-field><display/></default-field></field>
+                    <field name="model"><default-field><display/></default-field></field>
+                    <field name="licensePlate"><default-field><display/></default-field></field>
+                    <field name="mileage"><default-field><display format="#,##0"/></default-field></field>
+                </form-list>
+            </box-body>
+        </container-box>
+    </widgets>
+</screen>

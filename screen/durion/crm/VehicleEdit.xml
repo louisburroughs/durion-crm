@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Vehicle Detail" default-menu-index="4">
+
+    <parameter name="vehicleId"/>
+
+    <transition name="updateVehicle">
+        <service-call name="durion.crm.DurCrmServices.update#Vehicle"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="durion.crm.DurVehicle" value-field="vehicle"/>
+    </actions>
+
+    <widgets>
+        <container-box>
+            <box-header title="Vehicle: ${vehicle?.year} ${vehicle?.make} ${vehicle?.model}"/>
+            <box-body>
+                <container-row>
+                    <row-col lg="6">
+                        <label text="Vehicle ID: ${vehicle?.vehicleId}" type="strong"/>
+                        <label text="VIN: ${vehicle?.vin}"/>
+                        <label text="License Plate: ${vehicle?.licensePlate ?: 'N/A'}"/>
+                        <label text="Color: ${vehicle?.color ?: 'N/A'}"/>
+                        <label text="Body Type: ${vehicle?.bodyType ?: 'N/A'}"/>
+                    </row-col>
+                    <row-col lg="6">
+                        <label text="Customer: ${vehicle?.customerId ?: 'N/A'}"/>
+                        <label text="Fleet: ${vehicle?.fleetId ?: 'None'}"/>
+                        <label text="Mileage: ${vehicle?.mileage ? ec.l10n.format(vehicle.mileage, '#,##0') : '0'} miles"/>
+                        <label text="Registration Date: ${vehicle?.registrationDate ? ec.l10n.format(vehicle.registrationDate, 'yyyy-MM-dd') : 'N/A'}"/>
+                        <label text="Next Service: ${vehicle?.nextServiceDate ? ec.l10n.format(vehicle.nextServiceDate, 'yyyy-MM-dd') : 'Not scheduled'}"/>
+                    </row-col>
+                </container-row>
+
+                <form-single name="UpdateVehicle" transition="updateVehicle">
+                    <field name="vehicleId"><default-field><hidden default-value="${vehicleId}"/></default-field></field>
+                    <field name="mileage">
+                        <default-field title="Update Mileage">
+                            <text-line size="10" default-value="${vehicle?.mileage}"/>
+                        </default-field>
+                    </field>
+                    <field name="nextServiceDate">
+                        <default-field title="Schedule Service">
+                            <date-time format="yyyy-MM-dd" default-value="${vehicle?.nextServiceDate}"/>
+                        </default-field>
+                    </field>
+                    <field name="notes">
+                        <default-field>
+                            <textarea cols="60" rows="4" default-value="${vehicle?.notes}"/>
+                        </default-field>
+                    </field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-single>
+            </box-body>
+        </container-box>
+    </widgets>
+</screen>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" default-menu-title="Transfer Vehicle">
+
+    <parameter name="vehicleId" required="true"/>
+    <parameter name="customerId" required="true"/>
+
+    <transition name="transferVehicle">
+        <service-call name="durion.positivity.CrmRestServices.transfer#VehicleBetweenCustomers" out-map="transferResult"/>
+        <default-response url="../VehicleEdit" parameter-map="[vehicleId: vehicleId, customerId: targetCustomerId]"/>
+        <error-response url="."/>
+    </transition>
+
+    <transition name="cancel">
+        <default-response url="../VehicleEdit" parameter-map="[vehicleId: vehicleId, customerId: customerId]"/>
+    </transition>
+
+    <transition name="searchCustomers">
+        <service-call name="durion.positivity.CrmRestServices.search#Parties" out-map="searchResult"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <script><![CDATA[
+            // Get vehicle details
+            if (vehicleId) {
+                Map vehicleResult = ec.service.sync().name("durion.positivity.VehicleInventoryServices.get#Vehicle").parameters([vehicleId: vehicleId]).call()
+                vehicle = vehicleResult.vehicle
+            }
+            
+            // Get source customer details
+            if (customerId) {
+                Map customerResult = ec.service.sync().name("durion.positivity.CrmRestServices.get#Party").parameters([partyId: customerId]).call()
+                sourceCustomer = customerResult
+            }
+        ]]>        </script>
+    </actions>
+
+    <widgets>
+        <container>
+            <link url="cancel" text="← Back to Vehicle" btn-type="default"/>
+            <label text="Transfer Vehicle Ownership" type="h1"/>
+        </container>
+
+        <container-box>
+            <box-header title="Vehicle Information"/>
+            <box-body>
+                <label text="VIN: ${vehicle?.vin}" type="p"/>
+                <label text="Unit Number: ${vehicle?.unitNumber}" type="p"/>
+                <label text="Description: ${vehicle?.description}" type="p"/>
+                <label text="Current Owner: ${sourceCustomer?.legalName ?: sourceCustomer?.displayName}" type="p"/>
+            </box-body>
+        </container-box>
+
+        <container-box>
+            <box-header title="Transfer Details"/>
+            <box-body>
+                <label text="Select the target customer to transfer this vehicle to." type="p"/>
+
+                <form-single name="TransferVehicle" transition="transferVehicle">
+                    <field name="vehicleId">
+                        <default-field>
+                            <hidden default-value="${vehicleId}"/>
+                        </default-field>
+                    </field>
+                    <field name="customerId">
+                        <default-field>
+                            <hidden default-value="${customerId}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="targetCustomerId">
+                        <default-field title="Target Customer *" tooltip="Enter the customer ID to transfer to">
+                            <text-line size="40" placeholder="Customer UUID"/>
+                        </default-field>
+                    </field>
+
+                    <field name="notes">
+                        <default-field title="Transfer Notes">
+                            <text-area rows="4" cols="60" placeholder="Optional notes about this transfer"/>
+                        </default-field>
+                    </field>
+
+                    <field name="submitButton">
+                        <default-field title="Transfer Vehicle">
+                            <submit confirmation="Are you sure you want to transfer this vehicle?"/>
+                        </default-field>
+                    </field>
+                    <field name="cancelButton">
+                        <default-field title="">
+                            <link url="cancel" text="Cancel" btn-type="default"/>
+                        </default-field>
+                    </field>
+                </form-single>
+            </box-body>
+        </container-box>
+
+        <container>
+            <label text="Note: This transfer will:" type="strong"/>
+            <label text="• Remove the vehicle from the current customer" type="p"/>
+            <label text="• Add the vehicle to the target customer" type="p"/>
+            <label text="• Update the vehicle's account ID" type="p"/>
+            <label text="• Create an audit trail of the transfer" type="p"/>
+        </container>
+    </widgets>
+</screen>

@@ -1,60 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-title="Vehicle Detail" default-menu-index="4">
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" default-menu-title="Vehicle Detail" default-menu-index="4">
 
-    <parameter name="vehicleId"/>
+    <parameter name="vehicleId" required="true"/>
+    <parameter name="customerId"/>
 
     <transition name="updateVehicle">
-        <service-call name="durion.crm.DurCrmServices.update#Vehicle"/>
+        <service-call name="durion.positivity.CrmRestServices.update#VehicleForCustomer" out-map="updateResult"/>
         <default-response url="."/>
+        <error-response url="."/>
+    </transition>
+
+    <transition name="deleteVehicle">
+        <service-call name="durion.positivity.CrmRestServices.delete#VehicleForCustomer" out-map="deleteResult"/>
+        <default-response url="../VehicleFind"/>
+        <error-response url="."/>
+    </transition>
+
+    <transition name="transferVehicle">
+        <default-response url="VehicleTransfer"/>
+    </transition>
+
+    <transition name="back">
+        <default-response url="../VehicleFind"/>
     </transition>
 
     <actions>
-        <entity-find-one entity-name="durion.crm.DurVehicle" value-field="vehicle"/>
+        <script><![CDATA[
+            // Get vehicle details from pos-vehicle-inventory
+            if (vehicleId) {
+                Map vehicleResult = ec.service.sync().name("durion.positivity.VehicleInventoryServices.get#Vehicle").parameters([vehicleId: vehicleId]).call()
+                vehicle = vehicleResult.vehicle
+                
+                // If customerId not provided in URL, get it from vehicle accountId
+                if (!customerId && vehicle?.accountId) {
+                    customerId = vehicle.accountId as String
+                }
+            }
+        ]]>        </script>
     </actions>
 
     <widgets>
+        <container>
+            <link url="back" text="← Back to Vehicle Search" btn-type="default"/>
+            <label text="Vehicle Detail" type="h1"/>
+        </container>
+
         <container-box>
-            <box-header title="Vehicle: ${vehicle?.year} ${vehicle?.make} ${vehicle?.model}"/>
+            <box-header title="Vehicle: ${vehicle?.year ?: ''} ${vehicle?.make ?: ''} ${vehicle?.model ?: ''}"/>
             <box-body>
                 <container-row>
                     <row-col lg="6">
                         <label text="Vehicle ID: ${vehicle?.vehicleId}" type="strong"/>
                         <label text="VIN: ${vehicle?.vin}"/>
-                        <label text="License Plate: ${vehicle?.licensePlate ?: 'N/A'}"/>
-                        <label text="Color: ${vehicle?.color ?: 'N/A'}"/>
-                        <label text="Body Type: ${vehicle?.bodyType ?: 'N/A'}"/>
+                        <label text="VIN (Normalized): ${vehicle?.vinNormalized}"/>
+                        <label text="Unit Number: ${vehicle?.unitNumber}"/>
+                        <label text="Description: ${vehicle?.description}"/>
                     </row-col>
                     <row-col lg="6">
-                        <label text="Customer: ${vehicle?.customerId ?: 'N/A'}"/>
-                        <label text="Fleet: ${vehicle?.fleetId ?: 'None'}"/>
-                        <label text="Mileage: ${vehicle?.mileage ? ec.l10n.format(vehicle.mileage, '#,##0') : '0'} miles"/>
-                        <label text="Registration Date: ${vehicle?.registrationDate ? ec.l10n.format(vehicle.registrationDate, 'yyyy-MM-dd') : 'N/A'}"/>
-                        <label text="Next Service: ${vehicle?.nextServiceDate ? ec.l10n.format(vehicle.nextServiceDate, 'yyyy-MM-dd') : 'Not scheduled'}"/>
+                        <label text="License Plate: ${vehicle?.licensePlate ?: 'N/A'}"/>
+                        <label text="Plate Jurisdiction: ${vehicle?.licensePlateJurisdiction ?: 'N/A'}"/>
+                        <label text="Year: ${vehicle?.year ?: 'N/A'}"/>
+                        <label text="Make: ${vehicle?.make ?: 'N/A'}"/>
+                        <label text="Model: ${vehicle?.model ?: 'N/A'}"/>
+                        <label text="Trim: ${vehicle?.trim ?: 'N/A'}"/>
                     </row-col>
                 </container-row>
 
+                <container-row>
+                    <row-col lg="6">
+                        <label text="Account ID: ${vehicle?.accountId}"/>
+                        <label text="Status: ${vehicle?.isActive ? 'Active' : 'Inactive'}"/>
+                    </row-col>
+                    <row-col lg="6">
+                        <label text="Created: ${ec.l10n.format(vehicle?.createdAt, null)}"/>
+                        <label text="Updated: ${ec.l10n.format(vehicle?.updatedAt, null)}"/>
+                        <label text="Version: ${vehicle?.version}"/>
+                    </row-col>
+                </container-row>
+            </box-body>
+        </container-box>
+
+        <container-box>
+            <box-header title="Update Vehicle"/>
+            <box-body>
                 <form-single name="UpdateVehicle" transition="updateVehicle">
-                    <field name="vehicleId"><default-field><hidden default-value="${vehicleId}"/></default-field></field>
-                    <field name="mileage">
-                        <default-field title="Update Mileage">
-                            <text-line size="10" default-value="${vehicle?.mileage}"/>
-                        </default-field>
-                    </field>
-                    <field name="nextServiceDate">
-                        <default-field title="Schedule Service">
-                            <date-time format="yyyy-MM-dd" default-value="${vehicle?.nextServiceDate}"/>
-                        </default-field>
-                    </field>
-                    <field name="notes">
+                    <field name="vehicleId">
                         <default-field>
-                            <textarea cols="60" rows="4" default-value="${vehicle?.notes}"/>
+                            <hidden default-value="${vehicleId}"/>
                         </default-field>
                     </field>
-                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    <field name="customerId">
+                        <default-field>
+                            <hidden default-value="${customerId}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="unitNumber">
+                        <default-field title="Unit Number">
+                            <text-line size="20" default-value="${vehicle?.unitNumber}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="description">
+                        <default-field title="Description">
+                            <text-line size="60" default-value="${vehicle?.description}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="licensePlate">
+                        <default-field title="License Plate">
+                            <text-line size="15" default-value="${vehicle?.licensePlate}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="licensePlateRegion">
+                        <default-field title="Plate State/Region">
+                            <text-line size="10" default-value="${vehicle?.licensePlateJurisdiction}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="submitButton">
+                        <default-field title="Update">
+                            <submit/>
+                        </default-field>
+                    </field>
                 </form-single>
             </box-body>
+            <box-toolbar>
+                <link url="transferVehicle" text="Transfer Vehicle" btn-type="info" parameter-map="[vehicleId: vehicleId, customerId: customerId]"/>
+                <link url="deleteVehicle" text="Delete Vehicle" btn-type="danger" confirmation="Are you sure you want to delete this vehicle?" parameter-map="[vehicleId: vehicleId, customerId: customerId]"/>
+            </box-toolbar>
         </container-box>
     </widgets>
 </screen>

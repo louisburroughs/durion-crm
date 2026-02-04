@@ -15,7 +15,11 @@
     </transition>
 
     <transition name="searchCustomers">
-        <service-call name="durion.positivity.CrmRestServices.search#Parties" out-map="searchResult"/>
+        <service-call name="durion.crm.PartyServices.search#Parties" in-map="context" out-map="searchResult"/>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="selectCustomer">
         <default-response url="."/>
     </transition>
 
@@ -29,8 +33,32 @@
             
             // Get source customer details
             if (customerId) {
-                Map customerResult = ec.service.sync().name("durion.positivity.CrmRestServices.get#Party").parameters([partyId: customerId]).call()
-                sourceCustomer = customerResult
+                Map customerResult = ec.service.sync().name("durion.crm.PartyServices.get#Party").parameters([partyId: customerId]).call()
+                sourceCustomer = customerResult?.party
+            }
+            
+            // Handle customer search
+            if (ec.web.parameters.name || ec.web.parameters.email || ec.web.parameters.phone || ec.web.parameters.taxId || ec.web.parameters.partyType || ec.web.parameters.status) {
+                Map searchParams = [
+                    name: ec.web.parameters.name,
+                    email: ec.web.parameters.email,
+                    phone: ec.web.parameters.phone,
+                    taxId: ec.web.parameters.taxId,
+                    partyType: ec.web.parameters.partyType,
+                    status: ec.web.parameters.status,
+                    pageSize: ec.web.parameters.pageSize ?: 20
+                ]
+                Map searchResult = ec.service.sync().name("durion.crm.PartyServices.search#Parties").parameters(searchParams).call()
+                customerList = searchResult?.results ?: []
+                totalCustomers = searchResult?.totalCount ?: 0
+                showSearchResults = true
+            }
+            
+            // Handle selected customer
+            if (ec.web.parameters.selectedCustomerId) {
+                selectedCustomerId = ec.web.parameters.selectedCustomerId
+                Map selectedResult = ec.service.sync().name("durion.crm.PartyServices.get#Party").parameters([partyId: selectedCustomerId]).call()
+                selectedCustomer = selectedResult?.party
             }
         ]]>        </script>
     </actions>
@@ -70,7 +98,7 @@
 
                     <field name="targetCustomerId">
                         <default-field title="Target Customer *" tooltip="Enter the customer ID to transfer to">
-                            <text-line size="40" placeholder="Customer UUID"/>
+                            <text-line size="40" placeholder="Customer UUID" default-value="${selectedCustomerId}"/>
                         </default-field>
                     </field>
 
@@ -91,6 +119,182 @@
                         </default-field>
                     </field>
                 </form-single>
+            </box-body>
+        </container-box>
+
+        <container-box>
+            <box-header title="Search for Customer"/>
+            <box-body>
+                <label text="Search for a customer by name, email, phone, tax ID, party type, or status." type="p"/>
+
+                <form-single name="SearchCustomers" transition="searchCustomers">
+                    <field name="vehicleId">
+                        <default-field>
+                            <hidden default-value="${vehicleId}"/>
+                        </default-field>
+                    </field>
+                    <field name="customerId">
+                        <default-field>
+                            <hidden default-value="${customerId}"/>
+                        </default-field>
+                    </field>
+                    <field name="selectedCustomerId">
+                        <default-field>
+                            <hidden default-value="${selectedCustomerId}"/>
+                        </default-field>
+                    </field>
+
+                    <field name="name">
+                        <default-field title="Name" tooltip="Search by legal name or display name">
+                            <text-line size="40"/>
+                        </default-field>
+                    </field>
+
+                    <field name="email">
+                        <default-field title="Email" tooltip="Search by email address">
+                            <text-line size="40"/>
+                        </default-field>
+                    </field>
+
+                    <field name="phone">
+                        <default-field title="Phone" tooltip="Search by phone number">
+                            <text-line size="30"/>
+                        </default-field>
+                    </field>
+
+                    <field name="taxId">
+                        <default-field title="Tax ID" tooltip="Search by tax ID or EIN">
+                            <text-line size="30"/>
+                        </default-field>
+                    </field>
+
+                    <field name="partyType">
+                        <default-field title="Party Type">
+                            <drop-down allow-empty="true">
+                                <option key="ORGANIZATION" text="Commercial Account / Organization"/>
+                                <option key="INDIVIDUAL" text="Individual Person"/>
+                            </drop-down>
+                        </default-field>
+                    </field>
+
+                    <field name="status">
+                        <default-field title="Status">
+                            <drop-down allow-empty="true">
+                                <option key="ACTIVE" text="Active"/>
+                                <option key="PENDING" text="Pending"/>
+                                <option key="SUSPENDED" text="Suspended"/>
+                                <option key="INACTIVE" text="Inactive"/>
+                            </drop-down>
+                        </default-field>
+                    </field>
+
+                    <field name="pageSize">
+                        <default-field title="Results Per Page">
+                            <drop-down no-current-selected-key="20">
+                                <option key="10" text="10"/>
+                                <option key="20" text="20"/>
+                                <option key="50" text="50"/>
+                                <option key="100" text="100"/>
+                            </drop-down>
+                        </default-field>
+                    </field>
+
+                    <field name="searchButton">
+                        <default-field title="Search">
+                            <submit/>
+                        </default-field>
+                    </field>
+                </form-single>
+
+                <!-- Search Results Section -->
+                <section name="SearchResultsSection">
+                    <condition>
+                        <expression>showSearchResults</expression>
+                    </condition>
+                    <widgets>
+                        <!-- No Results Message -->
+                        <section name="NoResultsSection">
+                            <condition>
+                                <expression>customerList == null || customerList.isEmpty()</expression>
+                            </condition>
+                            <widgets>
+                                <container style="alert alert-info">
+                                    <label text="No customers found matching your search criteria."/>
+                                    <label text="Try adjusting your search parameters."/>
+                                </container>
+                            </widgets>
+                        </section>
+
+                        <!-- Results List -->
+                        <section name="ResultsListSection">
+                            <condition>
+                                <expression>customerList != null &amp;&amp; !customerList.isEmpty()</expression>
+                            </condition>
+                            <widgets>
+                                <container>
+                                    <label text="Found ${totalCustomers} customers" type="strong"/>
+                                </container>
+
+                                <form-list name="CustomerSearchResults" list="customerList" skip-form="true">
+                                    <field name="partyId">
+                                        <default-field title="Party ID">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+
+                                    <field name="partyType">
+                                        <default-field title="Type">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+
+                                    <field name="legalName">
+                                        <default-field title="Legal Name">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+
+                                    <field name="displayName">
+                                        <default-field title="Display Name">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+
+                                    <field name="status">
+                                        <default-field title="Status">
+                                            <display/>
+                                        </default-field>
+                                    </field>
+
+                                    <field name="selectAction">
+                                        <default-field title="">
+                                            <link url="selectCustomer" text="Select" 
+                                                  parameter-map="[vehicleId: vehicleId, customerId: customerId, selectedCustomerId: partyId]" 
+                                                  btn-type="success"/>
+                                        </default-field>
+                                    </field>
+                                </form-list>
+                            </widgets>
+                        </section>
+
+                        <!-- Selected Customer Display -->
+                        <section name="SelectedCustomerSection">
+                            <condition>
+                                <expression>selectedCustomer != null</expression>
+                            </condition>
+                            <widgets>
+                                <container style="alert alert-success">
+                                    <label text="Selected Customer:" type="strong"/>
+                                    <label text="ID: ${selectedCustomer?.partyId ?: 'N/A'}" type="p"/>
+                                    <label text="Name: ${selectedCustomer?.legalName ?: selectedCustomer?.displayName ?: 'N/A'}" type="p"/>
+                                    <label text="Type: ${selectedCustomer?.partyType ?: 'N/A'}" type="p"/>
+                                    <label text="Status: ${selectedCustomer?.status ?: 'N/A'}" type="p"/>
+                                    <label text="The customer ID has been populated in the Transfer Details form above." type="p"/>
+                                </container>
+                            </widgets>
+                        </section>
+                    </widgets>
+                </section>
             </box-body>
         </container-box>
 

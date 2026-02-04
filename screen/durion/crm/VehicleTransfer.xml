@@ -70,7 +70,7 @@
 
                     <field name="targetPartyId">
                         <default-field title="Target Customer *" tooltip="Enter the party ID to transfer to">
-                            <text-line size="40" placeholder="Party UUID"/>
+                            <text-line size="40" placeholder="Party ID"/>
                         </default-field>
                     </field>
 

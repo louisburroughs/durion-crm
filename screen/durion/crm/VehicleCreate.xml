@@ -65,7 +65,7 @@
                         </default-field>
                     </field>
 
-                    <field name="licensePlateRegion">
+                    <field name="licensePlateJurisdiction">
                         <default-field title="Plate State/Region">
                             <text-line size="10" placeholder="CA"/>
                         </default-field>

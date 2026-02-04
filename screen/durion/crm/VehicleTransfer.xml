@@ -33,8 +33,8 @@
             
             // Get source customer details
             if (customerId) {
-                Map customerResult = ec.service.sync().name("durion.positivity.CrmRestServices.get#Party").parameters([partyId: customerId]).call()
-                sourceCustomer = customerResult
+                Map customerResult = ec.service.sync().name("durion.crm.PartyServices.get#Party").parameters([partyId: customerId]).call()
+                sourceCustomer = customerResult?.party
             }
             
             // Handle customer search
@@ -218,7 +218,7 @@
                                 <expression>customerList == null || customerList.isEmpty()</expression>
                             </condition>
                             <widgets>
-                                <container style="alert alert-info margin-top: 15px;">
+                                <container style="alert alert-info">
                                     <label text="No customers found matching your search criteria."/>
                                     <label text="Try adjusting your search parameters."/>
                                 </container>
@@ -231,7 +231,7 @@
                                 <expression>customerList != null &amp;&amp; !customerList.isEmpty()</expression>
                             </condition>
                             <widgets>
-                                <container style="margin-top: 15px;">
+                                <container>
                                     <label text="Found ${totalCustomers} customers" type="strong"/>
                                 </container>
 
@@ -283,7 +283,7 @@
                                 <expression>selectedCustomer != null</expression>
                             </condition>
                             <widgets>
-                                <container style="alert alert-success margin-top: 15px;">
+                                <container style="alert alert-success">
                                     <label text="Selected Customer:" type="strong"/>
                                     <label text="ID: ${selectedCustomer.partyId}" type="p"/>
                                     <label text="Name: ${selectedCustomer.legalName ?: selectedCustomer.displayName}" type="p"/>

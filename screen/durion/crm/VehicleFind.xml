@@ -30,22 +30,16 @@
                 ]
                 Map searchResult = ec.service.sync().name("durion.positivity.VehicleInventoryServices.search#Vehicles").parameters(searchParams).call()
                 vehicles = searchResult.results ?: []
+            // Use searchResult from the vehicleSearch transition if available,
+            // otherwise initialize an empty result set for the initial page load.
+            if (searchResult) {
+                vehicles = searchResult.results ?: []
                 totalCount = searchResult.total ?: 0
-                
-                // Calculate pagination values
-                totalPages = (int) Math.ceil((double) totalCount / pageSize)
-                currentPage = pageIndex + 1 // Display 1-based page numbers
-                hasNextPage = pageIndex < (totalPages - 1)
-                hasPrevPage = pageIndex > 0
             } else {
                 vehicles = []
                 totalCount = 0
-                totalPages = 0
-                currentPage = 0
-                hasNextPage = false
-                hasPrevPage = false
             }
-        ]]>        </script>
+        ]]></script>
     </actions>
 
     <widgets>

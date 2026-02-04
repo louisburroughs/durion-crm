@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" default-menu-title="Create Vehicle" default-menu-index="5">
+
+    <parameter name="customerId"/>
+
+    <transition name="createVehicle">
+        <service-call name="durion.positivity.CrmRestServices.create#VehicleForCustomer" out-map="createResult"/>
+        <default-response url="../VehicleEdit" parameter-map="[vehicleId: createResult.vehicleId ?: createResult.vehicle?.vehicleId]"/>
+        <error-response url="."/>
+    </transition>
+
+    <transition name="cancel">
+        <default-response url="../VehicleFind"/>
+    </transition>
+
+    <actions>
+        <script><![CDATA[
+            // Get customer details to show context if customerId is provided
+            if (customerId) {
+                Map customerResult = ec.service.sync().name("durion.positivity.CrmRestServices.get#Customer").parameters([customerId: customerId]).call()
+                customer = customerResult.customer
+            }
+        ]]>        </script>
+    </actions>
+
+    <widgets>
+        <container>
+            <label text="Create Vehicle" type="h1"/>
+            <label text="Customer: ${customer?.firstName} ${customer?.lastName}" condition="customer" type="p"/>
+        </container>
+
+        <container-box>
+            <box-header title="Vehicle Information"/>
+            <box-body>
+                <label text="Required fields are marked with *" type="p"/>
+
+                <form-single name="CreateVehicle" transition="createVehicle">
+                    <field name="customerId">
+                        <default-field title="Customer">
+                            <drop-down required="true">
+                                <entity-options key="customerId" text="customerName">
+                                    <entity-find entity-name="durion.crm.DurCustomer">
+                                        <order-by field-name="customerName"/>
+                                    </entity-find>
+                                </entity-options>
+                            </drop-down>
+                        </default-field>
+                    </field>
+
+                    <field name="vin">
+                        <default-field title="VIN *" tooltip="17-character Vehicle Identification Number (excludes I, O, Q)">
+                            <text-line size="20" maxlength="17" placeholder="1HGCM82633A004352"/>
+                        </default-field>
+                    </field>
+
+                    <field name="unitNumber">
+                        <default-field title="Unit Number *" tooltip="Internal fleet or unit identifier">
+                            <text-line size="20" placeholder="UNIT-001"/>
+                        </default-field>
+                    </field>
+
+                    <field name="description">
+                        <default-field title="Description *" tooltip="Free-form vehicle description (year, make, model)">
+                            <text-line size="60" placeholder="2020 Honda Accord EX"/>
+                        </default-field>
+                    </field>
+
+                    <field name="licensePlate">
+                        <default-field title="License Plate">
+                            <text-line size="15" placeholder="ABC-1234"/>
+                        </default-field>
+                    </field>
+
+                    <field name="licensePlateJurisdiction">
+                        <default-field title="Plate State/Region">
+                            <text-line size="10" placeholder="CA"/>
+                        </default-field>
+                    </field>
+
+                    <field name="submitButton">
+                        <default-field title="Create Vehicle">
+                            <submit/>
+                        </default-field>
+                    </field>
+                    <field name="cancelButton">
+                        <default-field title="">
+                            <link url="cancel" text="Cancel" btn-type="default"/>
+                        </default-field>
+                    </field>
+                </form-single>
+            </box-body>
+        </container-box>
+
+        <container>
+            <label text="VIN Validation Rules:" type="strong"/>
+            <label text="• Must be exactly 17 characters" type="p"/>
+            <label text="• Excludes letters I, O, and Q" type="p"/>
+            <label text="• Will be automatically normalized (trimmed and uppercased)" type="p"/>
+        </container>
+    </widgets>
+</screen>

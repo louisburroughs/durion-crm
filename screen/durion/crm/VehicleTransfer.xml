@@ -38,7 +38,7 @@
             }
             
             // Handle customer search
-            if (ec.web.parameters.name || ec.web.parameters.email || ec.web.parameters.phone || ec.web.parameters.taxId) {
+            if (ec.web.parameters.name || ec.web.parameters.email || ec.web.parameters.phone || ec.web.parameters.taxId || ec.web.parameters.partyType || ec.web.parameters.status) {
                 Map searchParams = [
                     name: ec.web.parameters.name,
                     email: ec.web.parameters.email,
@@ -125,7 +125,7 @@
         <container-box>
             <box-header title="Search for Customer"/>
             <box-body>
-                <label text="Search for a customer by name, email, phone, or tax ID. At least one search criterion is required." type="p"/>
+                <label text="Search for a customer by name, email, phone, tax ID, party type, or status." type="p"/>
 
                 <form-single name="SearchCustomers" transition="searchCustomers">
                     <field name="vehicleId">
@@ -285,10 +285,10 @@
                             <widgets>
                                 <container style="alert alert-success">
                                     <label text="Selected Customer:" type="strong"/>
-                                    <label text="ID: ${selectedCustomer.partyId}" type="p"/>
-                                    <label text="Name: ${selectedCustomer.legalName ?: selectedCustomer.displayName}" type="p"/>
-                                    <label text="Type: ${selectedCustomer.partyType}" type="p"/>
-                                    <label text="Status: ${selectedCustomer.status}" type="p"/>
+                                    <label text="ID: ${selectedCustomer?.partyId ?: 'N/A'}" type="p"/>
+                                    <label text="Name: ${selectedCustomer?.legalName ?: selectedCustomer?.displayName ?: 'N/A'}" type="p"/>
+                                    <label text="Type: ${selectedCustomer?.partyType ?: 'N/A'}" type="p"/>
+                                    <label text="Status: ${selectedCustomer?.status ?: 'N/A'}" type="p"/>
                                     <label text="The customer ID has been populated in the Transfer Details form above." type="p"/>
                                 </container>
                             </widgets>

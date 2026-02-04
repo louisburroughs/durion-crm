@@ -6,7 +6,7 @@
 
     <transition name="transferVehicle">
         <service-call name="durion.positivity.CrmRestServices.transfer#VehicleBetweenCustomers" in-map="context" out-map="transferResult"/>
-        <default-response url="../VehicleEdit" parameter-map="[vehicleId: vehicleId, customerId: targetCustomerId]"/>
+        <default-response url="../VehicleEdit" parameter-map="[vehicleId: vehicleId, customerId: transferResult.targetCustomerId]"/>
         <error-response url="."/>
     </transition>
 

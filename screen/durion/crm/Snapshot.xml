@@ -51,7 +51,7 @@
             }
 
             if (hasPartyId || hasVehicleId) {
-                Map result = ec.service.sync().name('durion.crm.get#CrmSnapshot')
+                Map result = ec.service.sync().name('durion.crm.DurCrmServices.get#CrmSnapshot')
                     .parameters([partyId: partyIdTrim, vehicleId: vehicleIdTrim]).call()
 
                 snapshot = result.snapshot

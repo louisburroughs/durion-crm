@@ -38,22 +38,35 @@
                 return
             }
 
-            // Gateway base URL is expected to be configured for CRM (often includes /customer prefix)
-            String gatewayUrl = System.getProperty('pos.gateway.url',
-                System.getenv('POS_GATEWAY_URL') ?: 'http://localhost:8080')
+            // Gateway base URL is required to be configured for CRM
+            String gatewayUrl = System.getProperty('pos.gateway.url', System.getenv('POS_GATEWAY_URL'))
+            if (!gatewayUrl) {
+                statusCode = 500
+                errorMessage = 'Gateway URL not configured. Set pos.gateway.url system property or POS_GATEWAY_URL environment variable.'
+                ec.message.addError(errorMessage)
+                return
+            }
+
+            // Normalize base URL to avoid double slashes when appending paths
+            String baseUrl = gatewayUrl.replaceAll('/+$', '')
 
             List<String> queryParts = []
             if (hasPartyId) queryParts.add('partyId=' + URLEncoder.encode(partyId.toString().trim(), 'UTF-8'))
             if (hasVehicleId) queryParts.add('vehicleId=' + URLEncoder.encode(vehicleId.toString().trim(), 'UTF-8'))
 
-            String uri = gatewayUrl + '/v1/crm/snapshot' + (queryParts ? ('?' + queryParts.join('&')) : '')
+            String uri = baseUrl + '/v1/crm/snapshot' + (queryParts ? ('?' + queryParts.join('&')) : '')
             String jwtToken = ec.user.getLoginToken()
+
+            // Configure timeouts to prevent indefinite blocking
+            int connectTimeoutMs = 30000  // 30 seconds
+            int readTimeoutMs = 60000     // 60 seconds
 
             RestClient restClient = ec.service.rest()
                 .method('GET')
                 .uri(uri)
                 .addHeader('Accept', 'application/json')
                 .addHeader('X-API-Version', '1')
+                .timeout(connectTimeoutMs, readTimeoutMs)
 
             if (jwtToken) {
                 restClient.addHeader('Authorization', "Bearer ${jwtToken}")
